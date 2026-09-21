@@ -30,4 +30,5 @@ def get_users():
 
     connection.close()
 
+
     return user

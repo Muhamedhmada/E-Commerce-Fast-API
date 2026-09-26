@@ -6,6 +6,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/{user_id}")
 def get_user_endpoint(user_id: int):
+    
     return get_user(user_id)
 
 

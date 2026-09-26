@@ -6,6 +6,7 @@ from app.repositories.auth import (
     create_user
 )
 import bcrypt
+from app.core.security import create_access_token
 
 
 def signup(data: SignupRequest):
@@ -13,7 +14,7 @@ def signup(data: SignupRequest):
     existing_user = get_user_by_email(data.email)
 
     if existing_user:
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             content={
                 "status": 409,
@@ -33,20 +34,21 @@ def signup(data: SignupRequest):
     )
 
     return {
-        "id": user_id,
-        "name": data.name,
-        "email": data.email
+        "status":201,
+        "message":"create a new account",
+        "data":{
+            "id": user_id,
+        }
     }
 
 
 def login(data):
 
-
     existing_user = get_user_by_email(data.email)
 
-    password = existing_user["password"]
+    if existing_user:
 
-    if password:
+        password = existing_user["password"]    
 
         is_valid = bcrypt.checkpw(
             data.password.encode("utf-8"),
@@ -62,6 +64,23 @@ def login(data):
                             "message": "Password Is Wrong"
                         }
                     )
+        else:
+
+            token = create_access_token({
+                "sub": str(existing_user["id"]),
+                "email": existing_user["email"]
+            })
+
+
+            return{
+                "status":200,
+                "message":"welcome, you're logged in successfully",    
+                "data":{
+                    "access_token": token,
+                    "token_type": "bearer"
+                }
+            }
+        
     else:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
@@ -72,7 +91,3 @@ def login(data):
         )
 
 
-    return{
-        "status":200,
-        "message":"welcome, you're logged in successfully"
-    }

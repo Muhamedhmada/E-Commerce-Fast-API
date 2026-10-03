@@ -11,6 +11,7 @@ router = APIRouter(
 
 @router.post("/signup", status_code=201)
 def signup_endpoint(data: SignupRequest):
+    # return "f"
     return serv.signup(data)
 
 

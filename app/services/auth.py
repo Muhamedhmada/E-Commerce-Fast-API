@@ -7,6 +7,7 @@ from app.repositories.auth import (
 )
 import bcrypt
 from app.core.security import create_access_token
+import sqlite3
 
 
 def signup(data: SignupRequest):
@@ -16,7 +17,7 @@ def signup(data: SignupRequest):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            content={
+            detail={
                 "status": 409,
                 "message": "Email already exists"
             }
@@ -27,11 +28,20 @@ def signup(data: SignupRequest):
         bcrypt.gensalt()
     ).decode("utf-8")
 
-    user_id = create_user(
-        name=data.name,
-        email=data.email,
-        password_hash=password_hash
-    )
+    try:
+        user_id = create_user(
+            name=data.name,
+            email=data.email,
+            password_hash=password_hash
+        )
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "status": 409,
+                "message": "Email already exists"
+            }
+        )
 
     return {
         "status":201,

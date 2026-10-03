@@ -3,28 +3,34 @@ from app.create_db import get_connection
 
 
 def get_user_by_email(email: str):
-    db = get_connection()
+    connection = get_connection()
 
-    cursor = db.execute(
-        "SELECT id, name, email, password FROM users WHERE email = ?",
-        (email,)
-    )
+    try:
+        cursor = connection.execute(
+            "SELECT id, name, email, password FROM users WHERE email = ?",
+            (email,)
+        )
 
-    return cursor.fetchone()
+        return cursor.fetchone()
+    finally:
+        connection.close()
 
 
 def create_user(name: str, email: str, password_hash: str):
-    db = get_connection()
+    connection = get_connection()
 
-    cursor = db.execute(
-        """
-        INSERT INTO users (name, email, password)
-        VALUES (?, ?, ?)
-        """,
-        (name, email, password_hash)
-    )
+    try:
+        cursor = connection.execute(
+            """
+            INSERT INTO users (name, email, password)
+            VALUES (?, ?, ?)
+            """,
+            (name, email, password_hash)
+        )
 
-    db.commit()
+        connection.commit()
 
-    return cursor.lastrowid
+        return cursor.lastrowid
+    finally:
+        connection.close()
 
